@@ -1,0 +1,20 @@
+export type Format = "long" | "short";
+
+export type Stage = "ideas" | "drafts" | "inWorks";
+
+export type SortOrder = "newest" | "oldest";
+
+export interface Card {
+	id: string;
+	title: string;
+	description: string;
+	tags: string[];
+	notes: string;
+	format: Format;
+	stage: Stage;
+	createdAt: number;
+	updatedAt: number;
+}
+
+// The fields you fill in yourself in the card editor
+export type CardInput = Pick<Card, "title" | "description" | "tags" | "notes">;
