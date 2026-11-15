@@ -1,8 +1,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import { STAGES } from "@/lib/constants";
-import type { Card, CardInput, Format, SortOrder } from "@/lib/types";
-import { addTags } from "@/lib/utils";
+import type { Card, CardInput, Format, SortOrder, Stage } from "@/lib/types";
+import { addTags, getColumnKey, sortCards } from "@/lib/utils";
 
 type EditorState = { mode: "create"; format: Format } | { mode: "edit"; cardId: string } | null;
 
@@ -17,7 +16,7 @@ interface BoardStore {
 	addCard: (format: Format, input: CardInput) => void;
 	updateCard: (cardId: string, input: CardInput) => void;
 	deleteCard: (cardId: string) => void;
-	moveCard: (cardId: string, direction: -1 | 1) => void;
+	dropCard: (cardId: string, targetStage: Stage, beforeCardId: string | null) => void;
 	removeSavedTag: (tag: string) => void;
 	setSortOrder: (columnKey: string, sortOrder: SortOrder) => void;
 	setSearchQuery: (searchQuery: string) => void;
@@ -51,7 +50,14 @@ export const useBoardStore = create<BoardStore>()(
 
 			addCard: (format, input) => {
 				const now = Date.now();
-				const card: Card = { ...input, id: crypto.randomUUID(), format, stage: "ideas", createdAt: now, updatedAt: now };
+
+				// New ideas go first in the custom order
+				const ideaOrders = get()
+					.cards.filter((card) => card.format === format && card.stage === "ideas")
+					.map((card) => card.order);
+				const order = ideaOrders.length > 0 ? Math.min(...ideaOrders) - 1 : 0;
+
+				const card: Card = { ...input, id: crypto.randomUUID(), format, stage: "ideas", order, createdAt: now, updatedAt: now };
 
 				set((state) => ({
 					cards: [...state.cards, card],
@@ -68,16 +74,42 @@ export const useBoardStore = create<BoardStore>()(
 
 			deleteCard: (cardId) => set((state) => ({ cards: state.cards.filter((card) => card.id !== cardId) })),
 
-			moveCard: (cardId, direction) => {
-				const card = get().cards.find((existingCard) => existingCard.id === cardId);
-				if (!card) return;
+			// beforeCardId is the card it was dropped in front of, null means the end of the column
+			dropCard: (cardId, targetStage, beforeCardId) => {
+				const { cards, sortOrders } = get();
+				const droppedCard = cards.find((card) => card.id === cardId);
+				if (!droppedCard) return;
 
-				const stageIndex = STAGES.findIndex((stage) => stage.id === card.stage);
-				const nextStage = STAGES[stageIndex + direction];
-				if (!nextStage) return;
+				const columnKey = getColumnKey(droppedCard.format, targetStage);
+				const isSameColumn = droppedCard.stage === targetStage;
+				const isCustomSorted = sortOrders[columnKey] === "custom";
+
+				// The rest of the column in its saved custom order
+				const columnCards = sortCards(
+					cards.filter((card) => card.format === droppedCard.format && card.stage === targetStage && card.id !== cardId),
+					"custom",
+				);
+
+				// A column sorted by date places the card itself, so it goes first in the custom order
+				let insertIndex = 0;
+				if (isSameColumn || isCustomSorted) {
+					const beforeIndex = columnCards.findIndex((card) => card.id === beforeCardId);
+					insertIndex = beforeIndex === -1 ? columnCards.length : beforeIndex;
+				}
+
+				const orderedIds = columnCards.map((card) => card.id);
+				orderedIds.splice(insertIndex, 0, cardId);
 
 				set((state) => ({
-					cards: state.cards.map((existingCard) => (existingCard.id === cardId ? { ...existingCard, stage: nextStage.id, updatedAt: Date.now() } : existingCard)),
+					cards: state.cards.map((card) => {
+						const order = orderedIds.indexOf(card.id);
+						if (order === -1) return card;
+						if (card.id !== cardId) return { ...card, order };
+
+						return { ...card, order, stage: targetStage, updatedAt: isSameColumn ? card.updatedAt : Date.now() };
+					}),
+					// Reordering inside a column only makes sense in the custom order
+					sortOrders: isSameColumn ? { ...state.sortOrders, [columnKey]: "custom" } : state.sortOrders,
 				}));
 			},
 
@@ -90,8 +122,16 @@ export const useBoardStore = create<BoardStore>()(
 		}),
 		{
 			name: "content-planner-board",
+			version: 1,
 			partialize: (state) => ({ cards: state.cards, savedTags: state.savedTags, sortOrders: state.sortOrders }),
 			skipHydration: true,
+			// Cards saved before custom sorting existed have no order yet, newest goes first
+			migrate: (persistedState) => {
+				const state = persistedState as Pick<BoardStore, "cards" | "savedTags" | "sortOrders">;
+				const cards = state.cards.map((card) => ({ ...card, order: card.order ?? -card.createdAt }));
+
+				return { ...state, cards };
+			},
 		},
 	),
 );

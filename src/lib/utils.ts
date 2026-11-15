@@ -19,7 +19,9 @@ export const matchesSearch = (card: Card, searchQuery: string) => {
 
 export const sortCards = (cards: Card[], sortOrder: SortOrder) => {
 	return [...cards].sort((first, second) => {
-		return sortOrder === "newest" ? second.createdAt - first.createdAt : first.createdAt - second.createdAt;
+		if (sortOrder === "custom" && first.order !== second.order) return first.order - second.order;
+
+		return sortOrder === "oldest" ? first.createdAt - second.createdAt : second.createdAt - first.createdAt;
 	});
 };
 
