@@ -17,6 +17,3 @@ export interface Card {
 	createdAt: number;
 	updatedAt: number;
 }
-
-// The fields you fill in yourself in the card editor
-export type CardInput = Pick<Card, "title" | "description" | "tags" | "notes">;

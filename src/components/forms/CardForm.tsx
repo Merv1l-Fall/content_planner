@@ -1,10 +1,13 @@
 "use client";
 import { useState } from "react";
-import type { FormEvent } from "react";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Controller, useForm, useWatch } from "react-hook-form";
 import TagInput from "@/components/forms/TagInput";
 import { useBoardStore } from "@/lib/store/boardStore";
-import type { Card, CardInput, Format } from "@/lib/types";
+import type { Card, Format } from "@/lib/types";
 import { addTags } from "@/lib/utils";
+import { cardFormSchema } from "@/lib/validation";
+import type { CardFormValues, CardInput } from "@/lib/validation";
 
 interface CardFormProps {
 	format: Format;
@@ -16,26 +19,29 @@ const secondaryButtonClass = "rounded-md border border-border px-4 py-2 text-sm 
 
 const CardForm = ({ format, card }: CardFormProps) => {
 	const { addCard, updateCard, deleteCard, closeEditor } = useBoardStore();
-
-	const [title, setTitle] = useState(card?.title ?? "");
-	const [description, setDescription] = useState(card?.description ?? "");
-	const [tags, setTags] = useState(card?.tags ?? []);
-	const [tagDraft, setTagDraft] = useState("");
-	const [notes, setNotes] = useState(card?.notes ?? "");
-	const [titleError, setTitleError] = useState("");
 	const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
 
-	const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
-		event.preventDefault();
+	const {
+		register,
+		handleSubmit,
+		control,
+		setValue,
+		formState: { errors },
+	} = useForm<CardFormValues>({
+		resolver: zodResolver(cardFormSchema),
+		defaultValues: {
+			title: card?.title ?? "",
+			description: card?.description ?? "",
+			tags: card?.tags ?? [],
+			tagDraft: "",
+			notes: card?.notes ?? "",
+		},
+	});
+	const tagDraft = useWatch({ control, name: "tagDraft" });
 
-		// Validate
-		if (!title.trim()) {
-			setTitleError("Give the idea a title");
-			return;
-		}
-
+	const onSubmit = (values: CardFormValues) => {
 		// Include a tag that was typed but not added yet
-		const input: CardInput = { title: title.trim(), description: description.trim(), tags: addTags(tags, tagDraft), notes };
+		const input: CardInput = { title: values.title, description: values.description, tags: addTags(values.tags, values.tagDraft), notes: values.notes };
 
 		if (card) {
 			updateCard(card.id, input);
@@ -54,7 +60,7 @@ const CardForm = ({ format, card }: CardFormProps) => {
 	};
 
 	return (
-		<form onSubmit={handleSubmit} noValidate className="flex h-full flex-col">
+		<form onSubmit={handleSubmit(onSubmit)} noValidate className="flex h-full flex-col">
 			<div className="flex items-center justify-between border-b border-border px-5 py-4">
 				<h2 className="text-lg font-semibold">{card ? "Edit idea" : "New idea"}</h2>
 				<button type="button" onClick={closeEditor} aria-label="Close" className="flex size-8 items-center justify-center rounded-md text-muted transition-colors hover:bg-background hover:text-foreground">
@@ -67,30 +73,24 @@ const CardForm = ({ format, card }: CardFormProps) => {
 			<div className="flex flex-1 flex-col gap-5 overflow-y-auto px-5 py-5">
 				<label className="flex flex-col gap-1.5 text-sm font-medium">
 					Title
-					<input
-						type="text"
-						value={title}
-						onChange={(event) => {
-							setTitle(event.target.value);
-							setTitleError("");
-						}}
-						aria-invalid={titleError ? true : undefined}
-						autoFocus
-						className={fieldClass}
-					/>
-					{titleError && <span className="text-sm font-normal text-red-600 dark:text-red-400">{titleError}</span>}
+					<input type="text" {...register("title")} aria-invalid={errors.title ? true : undefined} autoFocus className={fieldClass} />
+					{errors.title && <span className="text-sm font-normal text-red-600 dark:text-red-400">{errors.title.message}</span>}
 				</label>
 
 				<label className="flex flex-col gap-1.5 text-sm font-medium">
 					Description
-					<textarea value={description} onChange={(event) => setDescription(event.target.value)} rows={2} placeholder="One or two lines shown on the card" className={fieldClass} />
+					<textarea {...register("description")} rows={2} placeholder="One or two lines shown on the card" className={fieldClass} />
 				</label>
 
-				<TagInput tags={tags} draft={tagDraft} onTagsChange={setTags} onDraftChange={setTagDraft} />
+				<Controller
+					control={control}
+					name="tags"
+					render={({ field }) => <TagInput tags={field.value} draft={tagDraft} onTagsChange={field.onChange} onDraftChange={(draft) => setValue("tagDraft", draft)} />}
+				/>
 
 				<label className="flex flex-1 flex-col gap-1.5 text-sm font-medium">
 					Notes
-					<textarea value={notes} onChange={(event) => setNotes(event.target.value)} rows={8} className={`${fieldClass} flex-1`} />
+					<textarea {...register("notes")} rows={8} className={`${fieldClass} flex-1`} />
 				</label>
 			</div>
 

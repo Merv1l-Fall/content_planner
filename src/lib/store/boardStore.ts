@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import type { Card, CardInput, Format, SortOrder, Stage } from "@/lib/types";
+import type { Card, Format, SortOrder, Stage } from "@/lib/types";
+import type { CardInput } from "@/lib/validation";
 import { addTags, getColumnKey, sortCards } from "@/lib/utils";
 
 type EditorState = { mode: "create"; format: Format } | { mode: "edit"; cardId: string } | null;
