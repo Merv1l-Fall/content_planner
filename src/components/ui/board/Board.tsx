@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { DndContext, DragOverlay, KeyboardSensor, MouseSensor, TouchSensor, useSensor, useSensors } from "@dnd-kit/core";
 import type { CollisionDetection, DragEndEvent, DragOverEvent, DragStartEvent, Over } from "@dnd-kit/core";
 import BoardColumn from "@/components/ui/board/BoardColumn";
@@ -9,7 +9,7 @@ import CardContent from "@/components/ui/board/CardContent";
 import { FORMATS, STAGES } from "@/lib/constants";
 import { useBoardStore } from "@/lib/store/boardStore";
 import type { Format } from "@/lib/types";
-import { getColumnKey, matchesSearch, sortCards } from "@/lib/utils";
+import { getBoardCards, getColumnKey, matchesSearch, sortCards } from "@/lib/utils";
 
 interface BoardProps {
 	format: Format;
@@ -46,7 +46,7 @@ const getDropTarget = (over: Over | null): DropTarget | null => {
 };
 
 const Board = ({ format }: BoardProps) => {
-	const { cards, searchQuery, sortOrders, loadBoard, dropCard } = useBoardStore();
+	const { cards, searchQuery, sortOrders, dropCard } = useBoardStore();
 	const [draggedCardId, setDraggedCardId] = useState<string | null>(null);
 	const [dropTarget, setDropTarget] = useState<DropTarget | null>(null);
 
@@ -57,13 +57,10 @@ const Board = ({ format }: BoardProps) => {
 		useSensor(KeyboardSensor),
 	);
 
-	useEffect(() => {
-		loadBoard();
-	}, [loadBoard]);
-
 	const formatOption = FORMATS.find((option) => option.id === format);
-	const visibleCards = cards.filter((card) => card.format === format && matchesSearch(card, searchQuery));
-	const draggedCard = cards.find((card) => card.id === draggedCardId) ?? null;
+	const boardCards = getBoardCards(cards, format);
+	const visibleCards = boardCards.filter((card) => matchesSearch(card, searchQuery));
+	const draggedCard = boardCards.find((card) => card.id === draggedCardId) ?? null;
 
 	const handleDragStart = (event: DragStartEvent) => {
 		setDraggedCardId(String(event.active.id));
@@ -92,7 +89,7 @@ const Board = ({ format }: BoardProps) => {
 			if ((cardAfter?.id ?? null) === target.beforeCardId) return;
 		}
 
-		dropCard(draggedCard.id, target.stage, target.beforeCardId);
+		dropCard(draggedCard.id, format, target.stage, target.beforeCardId);
 	};
 
 	return (

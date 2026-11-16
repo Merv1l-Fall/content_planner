@@ -59,6 +59,7 @@ const TagInput = ({ tags, draft, onTagsChange, onDraftChange }: TagInputProps) =
 					value={draft}
 					onChange={(event) => onDraftChange(event.target.value)}
 					onKeyDown={handleKeyDown}
+					maxLength={50}
 					placeholder="Type a tag and press Enter"
 					className="w-full min-w-0 rounded-md border border-border bg-background px-3 py-2 text-sm font-normal text-foreground outline-none placeholder:text-muted focus:border-accent"
 				/>

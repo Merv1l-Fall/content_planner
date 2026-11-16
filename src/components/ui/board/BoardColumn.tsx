@@ -2,7 +2,7 @@
 import { useDroppable } from "@dnd-kit/core";
 import IdeaCard from "@/components/ui/board/IdeaCard";
 import { useBoardStore } from "@/lib/store/boardStore";
-import type { Card, Format, SortOrder, Stage } from "@/lib/types";
+import type { BoardCard, Format, SortOrder, Stage } from "@/lib/types";
 import { getColumnKey, sortCards } from "@/lib/utils";
 
 export interface DropTarget {
@@ -14,8 +14,8 @@ interface BoardColumnProps {
 	format: Format;
 	stage: Stage;
 	label: string;
-	cards: Card[];
-	draggedCard: Card | null;
+	cards: BoardCard[];
+	draggedCard: BoardCard | null;
 	dropTarget: DropTarget | null;
 }
 

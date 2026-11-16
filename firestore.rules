@@ -1,0 +1,162 @@
+rules_version = '2';
+
+// ===============================================================
+// Assumed Data Model
+// ===============================================================
+//
+// Every user has a private board. Nothing is shared between users and there
+// are no roles, so every rule is "the signed-in owner, and valid data".
+//
+// Collection: users
+// Document ID: the Firebase Auth uid of the owner
+// Fields:
+//   - savedTags: list of strings (optional, at most 500 entries, at most
+//     25,000 characters in total) - tags offered as suggestions in the editor
+//   - sortOrders: map (optional). Keys are "<format>-<stage>", for example
+//     "long-ideas". Values are "newest", "oldest" or "custom".
+//
+// Collection: users/{userId}/cards
+// Document ID: a UUID made in the browser (at most 64 characters)
+// Fields (all required, no others allowed):
+//   - title: string, 1 to 200 characters
+//   - description: string, 0 to 2,000 characters
+//   - notes: string, 0 to 50,000 characters
+//   - tags: list of at most 30 strings, each 1 to 50 characters
+//   - placements: map with the keys "long" and/or "short" (at least one).
+//     Each value is a map of exactly { stage, order }, where stage is
+//     "ideas", "drafts" or "inWorks" and order is a number.
+//   - createdAt: number, milliseconds since 1970, immutable after creation
+//   - updatedAt: number, milliseconds since 1970
+//
+// The timestamps are numbers set in the browser, not server timestamps. The
+// app has to work offline and imports ideas that were made before sign-in
+// existed, so the rules cannot require them to match the server clock. Only
+// the owner can read or write them, so a wrong value harms nobody else.
+//
+// ===============================================================
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isValidString(value, minLen, maxLen) {
+      return value is string && value.size() >= minLen && value.size() <= maxLen;
+    }
+
+    // Rules have no loops, so each possible position is checked one by one
+    function isValidTagAt(tags, index) {
+      return tags.size() <= index || isValidString(tags[index], 1, 50);
+    }
+
+    function isValidTags(tags) {
+      return tags is list && tags.size() <= 30 &&
+        isValidTagAt(tags, 0) && isValidTagAt(tags, 1) && isValidTagAt(tags, 2) &&
+        isValidTagAt(tags, 3) && isValidTagAt(tags, 4) && isValidTagAt(tags, 5) &&
+        isValidTagAt(tags, 6) && isValidTagAt(tags, 7) && isValidTagAt(tags, 8) &&
+        isValidTagAt(tags, 9) && isValidTagAt(tags, 10) && isValidTagAt(tags, 11) &&
+        isValidTagAt(tags, 12) && isValidTagAt(tags, 13) && isValidTagAt(tags, 14) &&
+        isValidTagAt(tags, 15) && isValidTagAt(tags, 16) && isValidTagAt(tags, 17) &&
+        isValidTagAt(tags, 18) && isValidTagAt(tags, 19) && isValidTagAt(tags, 20) &&
+        isValidTagAt(tags, 21) && isValidTagAt(tags, 22) && isValidTagAt(tags, 23) &&
+        isValidTagAt(tags, 24) && isValidTagAt(tags, 25) && isValidTagAt(tags, 26) &&
+        isValidTagAt(tags, 27) && isValidTagAt(tags, 28) && isValidTagAt(tags, 29);
+    }
+
+    function isValidPlacement(placement) {
+      return placement is map &&
+        placement.keys().hasAll(['stage', 'order']) &&
+        placement.keys().hasOnly(['stage', 'order']) &&
+        placement.stage in ['ideas', 'drafts', 'inWorks'] &&
+        placement.order is number;
+    }
+
+    function isValidPlacements(placements) {
+      return placements is map &&
+        placements.size() >= 1 &&
+        placements.keys().hasOnly(['long', 'short']) &&
+        (!('long' in placements) || isValidPlacement(placements.long)) &&
+        (!('short' in placements) || isValidPlacement(placements.short));
+    }
+
+    // ===============================================================
+    // Domain Validators (used by both create and update)
+    // ===============================================================
+
+    function isValidCard(data) {
+      let fields = ['title', 'description', 'notes', 'tags', 'placements', 'createdAt', 'updatedAt'];
+      return data.keys().hasAll(fields) &&
+        data.keys().hasOnly(fields) &&
+        isValidString(data.title, 1, 200) &&
+        isValidString(data.description, 0, 2000) &&
+        isValidString(data.notes, 0, 50000) &&
+        isValidTags(data.tags) &&
+        isValidPlacements(data.placements) &&
+        data.createdAt is number && data.createdAt > 0 &&
+        data.updatedAt is number && data.updatedAt > 0;
+    }
+
+    function isValidSortOrder(sortOrders, columnKey) {
+      return sortOrders.get(columnKey, 'newest') in ['newest', 'oldest', 'custom'];
+    }
+
+    function isValidSortOrders(sortOrders) {
+      return sortOrders is map &&
+        sortOrders.keys().hasOnly(['long-ideas', 'long-drafts', 'long-inWorks', 'short-ideas', 'short-drafts', 'short-inWorks']) &&
+        isValidSortOrder(sortOrders, 'long-ideas') &&
+        isValidSortOrder(sortOrders, 'long-drafts') &&
+        isValidSortOrder(sortOrders, 'long-inWorks') &&
+        isValidSortOrder(sortOrders, 'short-ideas') &&
+        isValidSortOrder(sortOrders, 'short-drafts') &&
+        isValidSortOrder(sortOrders, 'short-inWorks');
+    }
+
+    // The list is too long to check entry by entry, so its total size is capped instead
+    function isValidSavedTags(savedTags) {
+      return savedTags is list &&
+        savedTags.size() <= 500 &&
+        savedTags.join('').size() <= 25000;
+    }
+
+    function isValidUserSettings(data) {
+      return data.keys().hasOnly(['savedTags', 'sortOrders']) &&
+        (!('savedTags' in data) || isValidSavedTags(data.savedTags)) &&
+        (!('sortOrders' in data) || isValidSortOrders(data.sortOrders));
+    }
+
+    // ===============================================================
+    // Rules
+    // ===============================================================
+
+    // Board settings, one document per user
+    match /users/{userId} {
+      allow get: if isOwner(userId);
+      allow create, update: if isOwner(userId) && isValidUserSettings(request.resource.data);
+
+      // The ideas on that user's boards
+      match /cards/{cardId} {
+        allow read: if isOwner(userId);
+        allow create: if isOwner(userId) && cardId.size() <= 64 && isValidCard(request.resource.data);
+        allow update: if isOwner(userId) &&
+          isValidCard(request.resource.data) &&
+          request.resource.data.createdAt == resource.data.createdAt;
+        allow delete: if isOwner(userId);
+      }
+    }
+
+    // Everything else is denied
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

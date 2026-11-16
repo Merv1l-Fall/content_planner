@@ -1,8 +1,31 @@
-import type { Card, Format, SortOrder, Stage } from "@/lib/types";
+import { FORMATS } from "@/lib/constants";
+import type { BoardCard, Card, Format, SortOrder, Stage } from "@/lib/types";
 
 // Each column on each tab remembers its own sort order
 export const getColumnKey = (format: Format, stage: Stage) => {
 	return `${format}-${stage}`;
+};
+
+// The boards an idea is on, in tab order
+export const getCardFormats = (card: Card) => {
+	return FORMATS.map((option) => option.id).filter((format) => card.placements[format]);
+};
+
+// The cards on one board, each with its stage and position on that board
+export const getBoardCards = (cards: Card[], format: Format) => {
+	return cards.flatMap((card): BoardCard[] => {
+		const placement = card.placements[format];
+		return placement ? [{ ...card, ...placement }] : [];
+	});
+};
+
+// The order that puts a card first in a column's custom order
+export const getTopOrder = (cards: Card[], format: Format, stage: Stage) => {
+	const orders = getBoardCards(cards, format)
+		.filter((card) => card.stage === stage)
+		.map((card) => card.order);
+
+	return orders.length > 0 ? Math.min(...orders) - 1 : 0;
 };
 
 export const formatCardDate = (timestamp: number) => {
@@ -17,7 +40,7 @@ export const matchesSearch = (card: Card, searchQuery: string) => {
 	return searchableText.includes(query);
 };
 
-export const sortCards = (cards: Card[], sortOrder: SortOrder) => {
+export const sortCards = (cards: BoardCard[], sortOrder: SortOrder) => {
 	return [...cards].sort((first, second) => {
 		if (sortOrder === "custom" && first.order !== second.order) return first.order - second.order;
 

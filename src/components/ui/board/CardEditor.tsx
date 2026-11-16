@@ -2,6 +2,7 @@
 import { useEffect, useRef } from "react";
 import CardForm from "@/components/forms/CardForm";
 import { useBoardStore } from "@/lib/store/boardStore";
+import { getCardFormats } from "@/lib/utils";
 
 const CardEditor = () => {
 	const { editor, cards, closeEditor } = useBoardStore();
@@ -24,8 +25,8 @@ const CardEditor = () => {
 			onClose={closeEditor}
 			className="fixed inset-y-0 right-0 left-auto m-0 h-dvh max-h-dvh w-full max-w-md border-l border-border bg-surface p-0 text-foreground backdrop:bg-black/40"
 		>
-			{editor?.mode === "create" && <CardForm key="new" format={editor.format} />}
-			{editor?.mode === "edit" && editingCard && <CardForm key={editingCard.id} format={editingCard.format} card={editingCard} />}
+			{editor?.mode === "create" && <CardForm key="new" initialFormats={[editor.format]} />}
+			{editor?.mode === "edit" && editingCard && <CardForm key={editingCard.id} initialFormats={getCardFormats(editingCard)} card={editingCard} />}
 		</dialog>
 	);
 };

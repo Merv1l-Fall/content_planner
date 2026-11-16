@@ -1,10 +1,10 @@
 "use client";
 import { useDraggable, useDroppable } from "@dnd-kit/core";
 import CardContent from "@/components/ui/board/CardContent";
-import type { Card } from "@/lib/types";
+import type { BoardCard } from "@/lib/types";
 
 interface IdeaCardProps {
-	card: Card;
+	card: BoardCard;
 	showDropLine: boolean;
 }
 
