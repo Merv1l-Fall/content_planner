@@ -3,14 +3,13 @@ import { getAuth } from "firebase/auth";
 import { getFirestore, initializeFirestore, persistentLocalCache, persistentMultipleTabManager } from "firebase/firestore";
 import type { Firestore } from "firebase/firestore";
 
-// These values identify the Firebase project, they are not secrets. Access is guarded by the security rules in firestore.rules
 const firebaseConfig = {
-	apiKey: "AIzaSyB6h5c0xK6FwshOFBbUvSYAOgnLzNFCmGw",
-	authDomain: "content-planner-4c9b4.firebaseapp.com",
-	projectId: "content-planner-4c9b4",
-	storageBucket: "content-planner-4c9b4.firebasestorage.app",
-	messagingSenderId: "887700282031",
-	appId: "1:887700282031:web:545c35ed7d44d9614e125a",
+	apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+	authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+	projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+	storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+	messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+	appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 };
 
 const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
