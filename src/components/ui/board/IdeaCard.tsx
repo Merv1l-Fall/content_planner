@@ -26,7 +26,7 @@ const IdeaCard = ({ card, showDropLine }: IdeaCardProps) => {
 				ref={setRefs}
 				{...attributes}
 				{...listeners}
-				className={`cursor-grab touch-manipulation rounded-md border border-border bg-surface p-4 select-none focus-visible:outline-2 focus-visible:outline-accent ${isDragging ? "opacity-40" : ""}`}
+				className={`cursor-grab touch-manipulation rounded-md [-webkit-touch-callout:none] border border-border bg-surface p-4 select-none focus-visible:outline-2 focus-visible:outline-accent ${isDragging ? "opacity-40" : ""}`}
 			>
 				<CardContent card={card} />
 			</article>

@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist } from "next/font/google";
 import { APP_NAME, THEME_STORAGE_KEY } from "@/lib/constants";
 import "./globals.css";
@@ -14,6 +14,15 @@ export const metadata: Metadata = {
 		template: `%s · ${APP_NAME}`,
 	},
 	description: "Plan long form and short form content from idea to finished piece.",
+};
+
+// cover lets the page reach under the notch and home bar, padding with env(safe-area-inset-*) keeps content clear of them
+export const viewport: Viewport = {
+	viewportFit: "cover",
+	themeColor: [
+		{ media: "(prefers-color-scheme: light)", color: "#f6f6f3" },
+		{ media: "(prefers-color-scheme: dark)", color: "#121413" },
+	],
 };
 
 // Runs before first paint so a saved theme never flashes the wrong colours

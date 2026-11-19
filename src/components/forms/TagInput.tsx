@@ -42,9 +42,9 @@ const TagInput = ({ tags, draft, onTagsChange, onDraftChange }: TagInputProps) =
 			{tags.length > 0 && (
 				<ul className="flex flex-wrap gap-1.5">
 					{tags.map((tag) => (
-						<li key={tag} className="flex items-center gap-1 rounded bg-accent-soft py-0.5 pr-1 pl-2 text-xs text-accent">
+						<li key={tag} className="flex items-center gap-1 rounded bg-accent-soft py-0.5 pr-1 pl-2 text-sm text-accent md:text-xs">
 							{tag}
-							<button type="button" onClick={() => onTagsChange(tags.filter((existingTag) => existingTag !== tag))} aria-label={`Remove ${tag} from this idea`} className="flex size-5 items-center justify-center rounded hover:bg-surface">
+							<button type="button" onClick={() => onTagsChange(tags.filter((existingTag) => existingTag !== tag))} aria-label={`Remove ${tag} from this idea`} className="flex size-7 items-center justify-center rounded hover:bg-surface md:size-5">
 								{removeIcon}
 							</button>
 						</li>
@@ -61,7 +61,7 @@ const TagInput = ({ tags, draft, onTagsChange, onDraftChange }: TagInputProps) =
 					onKeyDown={handleKeyDown}
 					maxLength={50}
 					placeholder="Type a tag and press Enter"
-					className="w-full min-w-0 rounded-md border border-border bg-background px-3 py-2 text-sm font-normal text-foreground outline-none placeholder:text-muted focus:border-accent"
+					className="w-full min-w-0 rounded-md border border-border bg-background px-3 py-2 text-base font-normal md:text-sm text-foreground outline-none placeholder:text-muted focus:border-accent"
 				/>
 				<button type="button" onClick={handleAddDraft} disabled={!draft.trim()} className="shrink-0 rounded-md border border-border px-3 py-2 text-sm transition-colors hover:bg-background disabled:opacity-50">
 					Add

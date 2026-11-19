@@ -14,6 +14,8 @@ interface BoardStore {
 	sortOrders: Record<string, SortOrder>;
 	searchQuery: string;
 	editor: EditorState;
+	// The idea the phone's Move sheet is open for
+	movingCardId: string | null;
 	hasLoaded: boolean;
 	syncError: string | null;
 	connectBoard: (userId: string) => () => void;
@@ -27,9 +29,11 @@ interface BoardStore {
 	openCreateEditor: (format: Format) => void;
 	openEditEditor: (cardId: string) => void;
 	closeEditor: () => void;
+	openMoveSheet: (cardId: string) => void;
+	closeMoveSheet: () => void;
 }
 
-const emptyBoard = { userId: null, cards: [], savedTags: [], sortOrders: {}, searchQuery: "", editor: null, hasLoaded: false, syncError: null };
+const emptyBoard = { userId: null, cards: [], savedTags: [], sortOrders: {}, searchQuery: "", editor: null, movingCardId: null, hasLoaded: false, syncError: null };
 
 export const useBoardStore = create<BoardStore>()((set, get) => {
 	// Every action changes the board here first so the screen never waits, then saves to Firestore.
@@ -189,5 +193,7 @@ export const useBoardStore = create<BoardStore>()((set, get) => {
 		openCreateEditor: (format) => set({ editor: { mode: "create", format } }),
 		openEditEditor: (cardId) => set({ editor: { mode: "edit", cardId } }),
 		closeEditor: () => set({ editor: null }),
+		openMoveSheet: (cardId) => set({ movingCardId: cardId }),
+		closeMoveSheet: () => set({ movingCardId: null }),
 	};
 });

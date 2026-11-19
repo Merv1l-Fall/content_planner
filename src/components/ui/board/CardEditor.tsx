@@ -23,7 +23,7 @@ const CardEditor = () => {
 		<dialog
 			ref={dialogRef}
 			onClose={closeEditor}
-			className="fixed inset-y-0 right-0 left-auto m-0 h-dvh max-h-dvh w-full max-w-md border-l border-border bg-surface p-0 text-foreground backdrop:bg-black/40"
+			className="fixed inset-y-0 right-0 left-auto m-0 h-dvh max-h-dvh w-full max-w-full border-border md:max-w-md md:border-l border-border bg-surface p-0 text-foreground backdrop:bg-black/40"
 		>
 			{editor?.mode === "create" && <CardForm key="new" initialFormats={[editor.format]} />}
 			{editor?.mode === "edit" && editingCard && <CardForm key={editingCard.id} initialFormats={getCardFormats(editingCard)} card={editingCard} />}

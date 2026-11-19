@@ -10,7 +10,7 @@ const Sidebar = () => {
 	const { user, signOut } = useAuthStore();
 
 	return (
-		<aside className="flex shrink-0 flex-wrap items-center gap-x-6 gap-y-3 border-b border-border px-4 py-3 md:w-56 md:flex-col md:flex-nowrap md:items-stretch md:gap-8 md:border-b-0 md:border-r md:px-5 md:py-6">
+		<aside className="hidden shrink-0 border-r border-border md:flex md:w-56 md:flex-col md:items-stretch md:gap-8 md:px-5 md:py-6">
 			<p className="text-base font-semibold">{APP_NAME}</p>
 
 			<nav aria-label="Format" className="flex flex-1 items-center gap-1 md:flex-col md:items-stretch">

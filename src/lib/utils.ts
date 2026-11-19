@@ -64,3 +64,9 @@ export const addTags = (tags: string[], text: string) => {
 
 	return nextTags;
 };
+
+// The card first in a column's custom order, leaving one card out. Dropping in front of it puts a card at the top
+export const getFirstCardId = (boardCards: BoardCard[], stage: Stage, skippedCardId: string) => {
+	const columnCards = boardCards.filter((card) => card.stage === stage && card.id !== skippedCardId);
+	return sortCards(columnCards, "custom")[0]?.id ?? null;
+};
