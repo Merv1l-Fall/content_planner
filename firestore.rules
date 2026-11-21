@@ -23,8 +23,10 @@ rules_version = '2';
 //   - notes: string, 0 to 50,000 characters
 //   - tags: list of at most 30 strings, each 1 to 50 characters
 //   - placements: map with the keys "long" and/or "short" (at least one).
-//     Each value is a map of exactly { stage, order }, where stage is
-//     "ideas", "drafts" or "inWorks" and order is a number.
+//     Each value is a map of { stage, order } plus an optional archivedAt,
+//     where stage is "ideas", "drafts" or "inWorks", order is a number and
+//     archivedAt (milliseconds since 1970) is set while the idea is archived
+//     on that board. No other keys are allowed.
 //   - createdAt: number, milliseconds since 1970, immutable after creation
 //   - updatedAt: number, milliseconds since 1970
 //
@@ -76,9 +78,10 @@ service cloud.firestore {
     function isValidPlacement(placement) {
       return placement is map &&
         placement.keys().hasAll(['stage', 'order']) &&
-        placement.keys().hasOnly(['stage', 'order']) &&
+        placement.keys().hasOnly(['stage', 'order', 'archivedAt']) &&
         placement.stage in ['ideas', 'drafts', 'inWorks'] &&
-        placement.order is number;
+        placement.order is number &&
+        (!('archivedAt' in placement) || (placement.archivedAt is number && placement.archivedAt > 0));
     }
 
     function isValidPlacements(placements) {

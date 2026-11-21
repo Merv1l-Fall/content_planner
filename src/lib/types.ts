@@ -9,6 +9,8 @@ export interface Placement {
 	stage: Stage;
 	// Position in the column's custom order, lowest first
 	order: number;
+	// Set while the idea is archived on this board, it keeps its stage so a restore puts it back there
+	archivedAt?: number;
 }
 
 export interface Card {
@@ -25,3 +27,9 @@ export interface Card {
 
 // A card as it appears on one board, with that board's stage and position
 export interface BoardCard extends Card, Placement {}
+
+// An idea archived on one board, there is one entry per board it was archived on
+export interface ArchivedCard extends BoardCard {
+	format: Format;
+	archivedAt: number;
+}

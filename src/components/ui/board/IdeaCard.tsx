@@ -1,14 +1,15 @@
 "use client";
 import { useDraggable, useDroppable } from "@dnd-kit/core";
 import CardContent from "@/components/ui/board/CardContent";
-import type { BoardCard } from "@/lib/types";
+import type { BoardCard, Format } from "@/lib/types";
 
 interface IdeaCardProps {
 	card: BoardCard;
+	format: Format;
 	showDropLine: boolean;
 }
 
-const IdeaCard = ({ card, showDropLine }: IdeaCardProps) => {
+const IdeaCard = ({ card, format, showDropLine }: IdeaCardProps) => {
 	const { attributes, listeners, setNodeRef: setDraggableRef, isDragging } = useDraggable({ id: card.id });
 	// Each card is also a drop target, so another card can be placed in front of it
 	const { setNodeRef: setDroppableRef } = useDroppable({ id: card.id, data: { type: "card", stage: card.stage } });
@@ -28,7 +29,7 @@ const IdeaCard = ({ card, showDropLine }: IdeaCardProps) => {
 				{...listeners}
 				className={`cursor-grab touch-manipulation rounded-md [-webkit-touch-callout:none] border border-border bg-surface p-4 select-none focus-visible:outline-2 focus-visible:outline-accent ${isDragging ? "opacity-40" : ""}`}
 			>
-				<CardContent card={card} />
+				<CardContent card={card} format={format} />
 			</article>
 		</div>
 	);

@@ -138,7 +138,7 @@ const Board = ({ format }: BoardProps) => {
 			<DragOverlay>
 				{draggedCard && (
 					<article className="cursor-grabbing rounded-md border border-border bg-surface p-4 opacity-80 shadow-lg">
-						<CardContent card={draggedCard} />
+						<CardContent card={draggedCard} format={format} />
 					</article>
 				)}
 			</DragOverlay>

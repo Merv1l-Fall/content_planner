@@ -23,6 +23,8 @@ interface BoardStore {
 	updateCard: (cardId: string, input: CardInput) => void;
 	deleteCard: (cardId: string) => void;
 	dropCard: (cardId: string, format: Format, targetStage: Stage, beforeCardId: string | null) => void;
+	archiveCard: (cardId: string, format: Format) => void;
+	restoreCard: (cardId: string, format: Format) => void;
 	removeSavedTag: (tag: string) => void;
 	setSortOrder: (columnKey: string, sortOrder: SortOrder) => void;
 	setSearchQuery: (searchQuery: string) => void;
@@ -177,6 +179,33 @@ export const useBoardStore = create<BoardStore>()((set, get) => {
 
 			// Reordering inside a column only makes sense in the custom order
 			if (isSameColumn && !isCustomSorted) get().setSortOrder(columnKey, "custom");
+		},
+
+		// Takes the idea off one board, the other board keeps it where it is
+		archiveCard: (cardId, format) => {
+			const existingCard = get().cards.find((card) => card.id === cardId);
+			const placement = existingCard?.placements[format];
+			if (!existingCard || !placement || placement.archivedAt !== undefined) return;
+
+			const now = Date.now();
+			const archivedCard: Card = { ...existingCard, placements: { ...existingCard.placements, [format]: { ...placement, archivedAt: now } }, updatedAt: now };
+
+			set((state) => ({ cards: state.cards.map((card) => (card.id === cardId ? archivedCard : card)) }));
+			save((userId) => saveCards(userId, [archivedCard]));
+		},
+
+		// Puts the idea back first in the stage it was archived from
+		restoreCard: (cardId, format) => {
+			const existingCard = get().cards.find((card) => card.id === cardId);
+			const placement = existingCard?.placements[format];
+			if (!existingCard || !placement || placement.archivedAt === undefined) return;
+
+			// Firestore turns down undefined values, so archivedAt is left out rather than cleared
+			const restoredPlacement = { stage: placement.stage, order: getTopOrder(get().cards, format, placement.stage) };
+			const restoredCard: Card = { ...existingCard, placements: { ...existingCard.placements, [format]: restoredPlacement }, updatedAt: Date.now() };
+
+			set((state) => ({ cards: state.cards.map((card) => (card.id === cardId ? restoredCard : card)) }));
+			save((userId) => saveCards(userId, [restoredCard]));
 		},
 
 		removeSavedTag: (tag) => {

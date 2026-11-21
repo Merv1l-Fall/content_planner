@@ -21,6 +21,8 @@ export const FORMATS: FormatOption[] = [
 	{ id: "short", label: "Short form", href: "/short-form" },
 ];
 
+export const ARCHIVE_HREF = "/archive";
+
 export const STAGES: StageOption[] = [
 	{ id: "ideas", label: "Ideas" },
 	{ id: "drafts", label: "Drafts" },
