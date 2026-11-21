@@ -13,7 +13,7 @@ const stepButtonClass = "flex min-h-12 items-center justify-center gap-1.5 round
 
 // The phone's way to move an idea without dragging it
 const MoveSheet = ({ format }: MoveSheetProps) => {
-	const { cards, sortOrders, movingCardId, dropCard, closeMoveSheet } = useBoardStore();
+	const { cards, sortOrders, movingCardId, dropCard, archiveCard, closeMoveSheet } = useBoardStore();
 
 	const boardCards = getBoardCards(cards, format);
 	const card = boardCards.find((boardCard) => boardCard.id === movingCardId);
@@ -95,6 +95,20 @@ const MoveSheet = ({ format }: MoveSheetProps) => {
 							</button>
 						</div>
 					)}
+
+					<button
+						type="button"
+						onClick={() => {
+							archiveCard(card.id, format);
+							closeMoveSheet();
+						}}
+						className={`${stepButtonClass} mt-4 w-full`}
+					>
+						<svg className="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+							<path d="M3 4h18v4H3zM5 8v11a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8M10 12h4" />
+						</svg>
+						Archive
+					</button>
 
 					<button type="button" onClick={closeMoveSheet} className="mt-2 min-h-12 rounded-lg text-base font-medium text-muted">
 						Cancel

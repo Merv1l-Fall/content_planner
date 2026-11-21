@@ -1,15 +1,17 @@
 "use client";
 import { useBoardStore } from "@/lib/store/boardStore";
-import type { Card } from "@/lib/types";
+import type { Card, Format } from "@/lib/types";
 import { formatCardDate } from "@/lib/utils";
 
 interface CardContentProps {
 	card: Card;
+	// The board the card is shown on
+	format: Format;
 }
 
 // What is shown inside a card, shared by the card on the board and the copy that follows the pointer
-const CardContent = ({ card }: CardContentProps) => {
-	const { openEditEditor, openMoveSheet } = useBoardStore();
+const CardContent = ({ card, format }: CardContentProps) => {
+	const { openEditEditor, openMoveSheet, archiveCard } = useBoardStore();
 
 	return (
 		<>
@@ -36,6 +38,10 @@ const CardContent = ({ card }: CardContentProps) => {
 						<path d="M5 12h14M13 6l6 6-6 6" />
 					</svg>
 					Move
+				</button>
+				{/* Phones archive from the Move sheet, so the card stays two buttons wide */}
+				<button type="button" onClick={() => archiveCard(card.id, format)} className="hidden rounded-md px-3 py-1.5 text-sm font-medium text-muted transition-colors hover:bg-background hover:text-foreground md:block">
+					Archive
 				</button>
 				<button type="button" onClick={() => openEditEditor(card.id)} className="-mr-2 min-h-11 rounded-md px-3 text-sm font-medium text-muted transition-colors hover:bg-background hover:text-foreground md:min-h-0 md:py-1.5">
 					Open

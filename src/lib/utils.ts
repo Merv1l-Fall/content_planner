@@ -1,5 +1,5 @@
 import { FORMATS } from "@/lib/constants";
-import type { BoardCard, Card, Format, SortOrder, Stage } from "@/lib/types";
+import type { ArchivedCard, BoardCard, Card, Format, SortOrder, Stage } from "@/lib/types";
 
 // Each column on each tab remembers its own sort order
 export const getColumnKey = (format: Format, stage: Stage) => {
@@ -11,12 +11,24 @@ export const getCardFormats = (card: Card) => {
 	return FORMATS.map((option) => option.id).filter((format) => card.placements[format]);
 };
 
-// The cards on one board, each with its stage and position on that board
+// The cards on one board, each with its stage and position on that board. Archived ones are left out
 export const getBoardCards = (cards: Card[], format: Format) => {
 	return cards.flatMap((card): BoardCard[] => {
 		const placement = card.placements[format];
-		return placement ? [{ ...card, ...placement }] : [];
+		return placement && placement.archivedAt === undefined ? [{ ...card, ...placement }] : [];
 	});
+};
+
+// Every archived entry on every board, most recently archived first
+export const getArchivedCards = (cards: Card[]) => {
+	return cards
+		.flatMap((card) =>
+			FORMATS.flatMap(({ id: format }): ArchivedCard[] => {
+				const placement = card.placements[format];
+				return placement?.archivedAt !== undefined ? [{ ...card, ...placement, format, archivedAt: placement.archivedAt }] : [];
+			}),
+		)
+		.sort((first, second) => second.archivedAt - first.archivedAt);
 };
 
 // The order that puts a card first in a column's custom order

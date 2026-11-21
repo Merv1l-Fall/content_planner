@@ -54,7 +54,7 @@ const BoardColumn = ({ format, stage, label, cards, draggedCard, dropTarget, isS
 			</div>
 
 			{sortedCards.map((card) => (
-				<IdeaCard key={card.id} card={card} showDropLine={showsDropPosition && dropTarget?.beforeCardId === card.id} />
+				<IdeaCard key={card.id} card={card} format={format} showDropLine={showsDropPosition && dropTarget?.beforeCardId === card.id} />
 			))}
 
 			{showsDropPosition && dropTarget?.beforeCardId === null && cards.length > 0 && (

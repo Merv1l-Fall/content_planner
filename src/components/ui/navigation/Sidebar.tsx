@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import ThemeToggle from "@/components/ui/navigation/ThemeToggle";
-import { APP_NAME, FORMATS } from "@/lib/constants";
+import { APP_NAME, ARCHIVE_HREF, FORMATS } from "@/lib/constants";
 import { useAuthStore } from "@/lib/store/authStore";
 
 const Sidebar = () => {
@@ -29,6 +29,14 @@ const Sidebar = () => {
 						</Link>
 					);
 				})}
+
+				<Link
+					href={ARCHIVE_HREF}
+					aria-current={pathname === ARCHIVE_HREF ? "page" : undefined}
+					className={`mt-4 whitespace-nowrap rounded-md px-3 py-2 text-sm font-medium transition-colors ${pathname === ARCHIVE_HREF ? "bg-accent-soft text-accent" : "text-muted hover:bg-surface hover:text-foreground"}`}
+				>
+					Archive
+				</Link>
 			</nav>
 
 			<div className="flex items-center gap-1 md:mt-auto md:flex-col md:items-stretch">

@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import ThemeToggle from "@/components/ui/navigation/ThemeToggle";
 import BottomSheet from "@/components/ui/overlay/BottomSheet";
-import { FORMATS } from "@/lib/constants";
+import { ARCHIVE_HREF, FORMATS } from "@/lib/constants";
 import { useAuthStore } from "@/lib/store/authStore";
 import type { Format } from "@/lib/types";
 
@@ -22,10 +22,11 @@ const MobileNav = () => {
 	const pathname = usePathname();
 	const { user, signOut } = useAuthStore();
 	const [isMenuOpen, setIsMenuOpen] = useState(false);
+	const isArchiveActive = pathname === ARCHIVE_HREF;
 
 	return (
 		<>
-			<nav aria-label="Format" className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-3 border-t border-border bg-surface pb-[env(safe-area-inset-bottom)] md:hidden">
+			<nav aria-label="Format" className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-4 border-t border-border bg-surface pb-[env(safe-area-inset-bottom)] md:hidden">
 				{FORMATS.map((format) => {
 					const isActive = pathname === format.href;
 
@@ -40,6 +41,15 @@ const MobileNav = () => {
 						</Link>
 					);
 				})}
+
+				<Link href={ARCHIVE_HREF} aria-current={isArchiveActive ? "page" : undefined} className={`${tabClass} h-16 ${isArchiveActive ? "font-semibold text-accent" : "font-medium text-muted"}`}>
+					<span className={`flex h-7 w-14 items-center justify-center rounded-full ${isArchiveActive ? "bg-accent-soft" : ""}`}>
+						<svg className="size-5.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+							<path d="M3 4h18v4H3zM5 8v11a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8M10 12h4" />
+						</svg>
+					</span>
+					Archive
+				</Link>
 
 				<button type="button" onClick={() => setIsMenuOpen(true)} aria-haspopup="dialog" className={`${tabClass} h-16 font-medium text-muted`}>
 					<span className="flex h-7 w-14 items-center justify-center">
